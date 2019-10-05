@@ -35,6 +35,18 @@ def isAltTabWindow(window):
 
     return True
 
+def showVideoDevice():
+    cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_FFMPEG,True)
+    cap.set(cv2.CAP_PROP_FPS,30)    
+    while(True):
+        ret,frame = cap.read()
+        cv2.imshow('camera - press q to close',frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    cap.release()
+    cv2.destroyAllWindows()
+
 def previewWindow(window):
     while window:
         rect = win32gui.GetClientRect(window)
@@ -118,6 +130,10 @@ def initGui():
         lambda event: updateOptionMenuOptions(optionMenu, optionMenuLabel, getWindowNames(),
         lambda windowName: previewWindow(win32gui.FindWindow(None, windowName)))
     )
+    
+    vidButton = Button(root, text="Webcam", command=showVideoDevice)
+    
+    vidButton.pack()
     optionMenu.pack()
 
     mainloop()
