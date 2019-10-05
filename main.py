@@ -5,6 +5,7 @@ import win32.win32gui as win32gui
 import pythonwin.win32ui as win32ui
 from ctypes import windll
 from tkinter import *
+from tkinter import _setit
 from PIL import Image
 
 GWL_EXSTYLE = -20
@@ -35,7 +36,7 @@ def isAltTabWindow(window):
     return True
 
 def previewWindow(window):
-    while 1:
+    while window:
         rect = win32gui.GetClientRect(window)
         w = rect[2] - rect[0]
         h = rect[3] - rect[1]
@@ -70,39 +71,59 @@ def previewWindow(window):
             win32gui.ReleaseDC(window, windowDC)
 
             # Display the image
-            cv2.imshow('test', np.array(im))
+            cv2.imshow('Screen capture preview - press "q" to quit', np.array(im))
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 break
 
-def callback(window, list): # Callback for EnumWindows; appends the window to the list
-    list.append(window)
+def getWindowNames():
+    """A list of window names as per win32gui.GetWindowText()
 
-rawWindowList = []
-win32gui.EnumWindows(callback, rawWindowList)
-windowList = list(filter(lambda window: isAltTabWindow(window), rawWindowList))
-windowNames = list(map(lambda window: win32gui.GetWindowText(window), windowList))
+    Returns:
+        list of str: A list of names of available windows.
 
-master = Tk()
+    """
+    rawWindowList = []
+    win32gui.EnumWindows(lambda window, list: list.append(window), rawWindowList)
+    windowList = list(filter(lambda window: isAltTabWindow(window), rawWindowList))
+    return list(map(lambda window: win32gui.GetWindowText(window), windowList))
 
-variable = StringVar(master)
-variable.set('Select a window to capture' if len(windowNames) > 0 else 'No windows available') # default value
+def updateOptionMenuOptions(optionMenu, variable, options, callback):
+    """Updates the OptionMenu with a new list of options
 
-w = OptionMenu(master, variable,
-    *(windowNames if len(windowNames) > 0 else ['No windows available']),
-    command=(lambda windowName: previewWindow(win32gui.FindWindow(None, windowName)))
-)
-w.pack()
+        Args:
+            optionMenu (OptionMenu): The OptionMenu to update.
+            variable (StringVar): The associated string variable label for optionMenu.
+            options (list of str): The new options.
+            callback (Function): The callback function for when an option is selected.
+    """
+    menu = optionMenu.children['menu']
+    menu.delete(0, 'end')
+    for option in options:
+        menu.add_command(label=option, command=_setit(variable, option, callback))
 
-mainloop()
+def initGui():
+    """Initialize the GUI
+    """
+    root = Tk()
+    root.geometry("300x100")
 
-# mon = {'top': 160, 'left': 160, 'width': 200, 'height': 200}
+    initialWindowNames = getWindowNames()
+    optionMenuLabel = StringVar(root)
+    optionMenuLabel.set('Select a window to capture' if len(initialWindowNames) > 0 else 'No windows available') # default value
 
-# sct = mss()
+    optionMenu = OptionMenu(root, optionMenuLabel, *(initialWindowNames if len(initialWindowNames) > 0 else ['No windows available']))
+    optionMenu.bind( # Refrshes the options everytime the menu is opened
+        '<Button-1>',
+        lambda event: updateOptionMenuOptions(optionMenu, optionMenuLabel, getWindowNames(),
+        lambda windowName: previewWindow(win32gui.FindWindow(None, windowName)))
+    )
+    optionMenu.pack()
 
-# while 1:
-#     sct_img = sct.grab(mon)
-#     cv2.imshow('test', np.array(sct_img))
-#     if cv2.waitKey(25) & 0xFF == ord('q'):
-#         cv2.destroyAllWindows()
-#         break
+    mainloop()
+
+def main():
+    initGui()
+
+if __name__ == "__main__":
+    main()
