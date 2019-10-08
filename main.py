@@ -39,18 +39,35 @@ def isAltTabWindow(window):
 def findVideoDevice():
     graph = FilterGraph()
     deviceNum = len(graph.get_input_devices())
-    defaultDevice = graph.get_input_devices().index('OBS-Camera')
+    if 'OBS-Camera' in graph.get_input_devices():
+        defaultDevice = graph.get_input_devices().index('OBS-Camera')
+    else:
+        defaultDevice = 'NoCam'
     return defaultDevice
 
 def showVideoDevice():
-    cap = cv2.VideoCapture(findVideoDevice())
-    while(True):        
-        ret,frame = cap.read()
-        cv2.imshow('camera - press q to close',frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    cap.release()
-    cv2.destroyAllWindows()
+    if findVideoDevice() != 'NoCam':
+        cap = cv2.VideoCapture(findVideoDevice())
+        while(True):        
+            ret,frame = cap.read()
+            cv2.imshow('camera - press q to close',frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        cap.release()
+        cv2.destroyAllWindows()         
+    else:
+        root2= Tk()
+        root2.title("Warning")
+        text1 = Text(root2, height=10, width=50)
+        
+        text1.config(state="normal")
+        text1.insert(INSERT,"Warning: OBS Virtual Camera is not detected.")
+        text1.config(state="disabled")
+        
+        text1.pack()
+        
+        root2.mainloop()
+        
     
 def previewWindow(window):
     while window:
