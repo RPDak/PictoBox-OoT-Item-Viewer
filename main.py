@@ -50,7 +50,13 @@ def showVideoDevice():
         cap = cv2.VideoCapture(findVideoDevice())
         while(True):        
             ret,frame = cap.read()
-            cv2.imshow('camera - press q to close',frame)
+            fHeight, fWidth, fChannels = frame.shape
+            #Crop just the items
+            croppedFrame1 = frame[35:84, 458:507]
+            croppedFrame2 = frame[69:118, 501:551]
+            croppedFrame3 = frame[37:86, 543:595]
+            combo = np.concatenate((croppedFrame1, croppedFrame2, croppedFrame3), axis=1)
+            cv2.imshow('camera - press q to close',combo)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         cap.release()
@@ -68,7 +74,7 @@ def showVideoDevice():
         
         root2.mainloop()
         
-    
+
 def previewWindow(window):
     while window:
         rect = win32gui.GetClientRect(window)
@@ -105,7 +111,24 @@ def previewWindow(window):
             win32gui.ReleaseDC(window, windowDC)
 
             # Display the image
-            cv2.imshow('Screen capture preview - press "q" to quit', np.array(im))
+            
+            winHeight = im.height
+            winWidth = im.width
+            
+            #Set new width to 640 and height to a corresponding number
+            newWinHeight = round((640/winWidth)*winHeight)
+            baseWidth = 640
+            
+            resizedWindow = im.resize((baseWidth,newWinHeight), Image.ANTIALIAS)
+            
+            #Crop just the items
+            croppedWin1 = resizedWindow.crop((458, 35, 507, 84))
+            croppedWin2 = resizedWindow.crop((501, 69, 551, 118))
+            croppedWin3 = resizedWindow.crop((543, 37, 595, 86))
+            
+            winCombo = np.concatenate((croppedWin1, croppedWin2, croppedWin3), axis=1)            
+            
+            cv2.imshow('Screen capture preview - press "q" to quit', np.array(winCombo))
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 break
@@ -154,8 +177,8 @@ def initGui():
     )
     
     vidButton = Button(root, text="Webcam", command=showVideoDevice)
-    
-    vidButton.pack()
+        
+    vidButton.pack()    
     optionMenu.pack()
 
     mainloop()
