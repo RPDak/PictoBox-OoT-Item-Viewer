@@ -58,7 +58,7 @@ def showVideoDevice():
     else:
         root2= Tk()
         root2.title("Warning")
-        text1 = Text(root2, height=10, width=50)
+        text1 = Text(root2, height=2, width=45)
         
         text1.config(state="normal")
         text1.insert(INSERT,"Warning: OBS Virtual Camera is not detected.")
