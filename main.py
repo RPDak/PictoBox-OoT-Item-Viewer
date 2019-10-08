@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import cv2
 from mss import mss
@@ -7,7 +8,7 @@ from ctypes import windll
 from tkinter import *
 from tkinter import _setit
 from PIL import Image
-
+from pygrabber.dshow_graph import FilterGraph
 GWL_EXSTYLE = -20
 WS_EX_WINDOWEDGE = 256
 
@@ -35,18 +36,22 @@ def isAltTabWindow(window):
 
     return True
 
+def findVideoDevice():
+    graph = FilterGraph()
+    deviceNum = len(graph.get_input_devices())
+    defaultDevice = graph.get_input_devices().index('OBS-Camera')
+    return defaultDevice
+
 def showVideoDevice():
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_FFMPEG,True)
-    cap.set(cv2.CAP_PROP_FPS,30)    
-    while(True):
+    cap = cv2.VideoCapture(findVideoDevice())
+    while(True):        
         ret,frame = cap.read()
         cv2.imshow('camera - press q to close',frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cap.release()
     cv2.destroyAllWindows()
-
+    
 def previewWindow(window):
     while window:
         rect = win32gui.GetClientRect(window)
