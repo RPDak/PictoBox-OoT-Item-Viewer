@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import cv2
 from mss import mss
@@ -7,7 +8,7 @@ from ctypes import windll
 from tkinter import *
 from tkinter import _setit
 from PIL import Image
-
+from pygrabber.dshow_graph import FilterGraph
 GWL_EXSTYLE = -20
 WS_EX_WINDOWEDGE = 256
 
@@ -35,6 +36,42 @@ def isAltTabWindow(window):
 
     return True
 
+def findVideoDevice():
+    graph = FilterGraph()
+    try:
+        deviceNum = len(graph.get_input_devices())
+    except:
+        return 'NoCam'
+    if 'OBS-Camera' in graph.get_input_devices():
+        defaultDevice = graph.get_input_devices().index('OBS-Camera')
+    else:
+        defaultDevice = 'NoCam'
+    return defaultDevice
+
+def showVideoDevice():
+    if findVideoDevice() != 'NoCam':
+        cap = cv2.VideoCapture(findVideoDevice())
+        while(True):        
+            ret,frame = cap.read()
+            cv2.imshow('camera - press q to close',frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        cap.release()
+        cv2.destroyAllWindows()         
+    else:
+        root2 = Tk()
+        root2.title("Warning")
+        text1 = Text(root2, height=2, width=45)
+        
+        text1.config(state="normal")
+        text1.insert(INSERT,"Warning: OBS Virtual Camera is not detected.")
+        text1.config(state="disabled")
+        
+        text1.pack()
+        
+        root2.mainloop()
+        
+    
 def previewWindow(window):
     while window:
         rect = win32gui.GetClientRect(window)
@@ -118,6 +155,10 @@ def initGui():
         lambda event: updateOptionMenuOptions(optionMenu, optionMenuLabel, getWindowNames(),
         lambda windowName: previewWindow(win32gui.FindWindow(None, windowName)))
     )
+    
+    vidButton = Button(root, text="Webcam", command=showVideoDevice)
+    
+    vidButton.pack()
     optionMenu.pack()
 
     mainloop()

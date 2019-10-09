@@ -1,3 +1,4 @@
+comtypes==1.1.7
 mss==4.0.3
 numpy==1.17.2
 opencv-python==4.1.1.26
