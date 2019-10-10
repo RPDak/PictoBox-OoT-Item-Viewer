@@ -42,7 +42,6 @@ def findVideoDevice():
         deviceNum = len(graph.get_input_devices())
     except:
         return 'NoCam'
-
     if 'OBS-Camera' in graph.get_input_devices():
         defaultDevice = graph.get_input_devices().index('OBS-Camera')
     else:
@@ -60,7 +59,6 @@ def showVideoDevice():
         cap.release()
         cv2.destroyAllWindows()         
     else:
-
         root2 = Tk()
         root2.title("Warning")
         text1 = Text(root2, height=2, width=45)
