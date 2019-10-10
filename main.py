@@ -9,6 +9,11 @@ from tkinter import *
 from tkinter import _setit
 from PIL import Image
 from pygrabber.dshow_graph import FilterGraph
+from keras.models import load_model
+
+# local modules
+from pictobox.model import CLASS_NAMES, normalizeImage, flipChannels
+
 GWL_EXSTYLE = -20
 WS_EX_WINDOWEDGE = 256
 
@@ -76,6 +81,8 @@ def showVideoDevice():
         
 
 def previewWindow(window):
+    model = load_model('pictobox/model/model.h5')
+
     while window:
         rect = win32gui.GetClientRect(window)
         w = rect[2] - rect[0]
@@ -125,13 +132,38 @@ def previewWindow(window):
             croppedWin1 = resizedWindow.crop((458, 35, 507, 84))
             croppedWin2 = resizedWindow.crop((501, 69, 551, 118))
             croppedWin3 = resizedWindow.crop((543, 37, 595, 86))
+
+            normalized1 = normalizeImage(croppedWin1)
+            predictions1 = model.predict(normalized1)
+            class1 = CLASS_NAMES[np.argmax(predictions1)]
+            certainty1 = float(np.max(predictions1))
+
+            normalized2 = normalizeImage(croppedWin2)
+            predictions2 = model.predict(normalized2)
+            class2 = CLASS_NAMES[np.argmax(predictions2)]
+            certainty2 = float(np.max(predictions2))
+
+            normalized3 = normalizeImage(croppedWin3)
+            predictions3 = model.predict(normalized3)
+            class3 = CLASS_NAMES[np.argmax(predictions3)]
+            certainty3 = float(np.max(predictions3))
+
+            print(class1, certainty1, class2, certainty2, class3, certainty3)
             
             winCombo = np.concatenate((croppedWin1, croppedWin2, croppedWin3), axis=1)            
             
             cv2.imshow('Screen capture preview - press "q" to quit', np.array(winCombo))
-            if cv2.waitKey(25) & 0xFF == ord('q'):
+
+            keyPressed = cv2.waitKey(25) & 0xFF
+            if keyPressed == ord('q'):
                 cv2.destroyAllWindows()
                 break
+            elif keyPressed == ord('1'):
+                flipChannels(croppedWin1).save('c_left.jpg')
+            elif keyPressed == ord('2'):
+                flipChannels(croppedWin2).save('c_down.jpg')
+            elif keyPressed == ord('3'):
+                flipChannels(croppedWin3).save('c_right.jpg')
 
 def getWindowNames():
     """A list of window names as per win32gui.GetWindowText()
