@@ -54,10 +54,11 @@ def showVideoDevice():
         while(True):        
             ret,frame = cap.read()
             fHeight, fWidth, fChannels = frame.shape
+            resizedFrame = cv2.resize(frame,(640,480))
             #Crop just the items
-            croppedFrame1 = frame[35:84, 458:507]
-            croppedFrame2 = frame[69:118, 501:551]
-            croppedFrame3 = frame[37:86, 543:595]
+            croppedFrame1 = resizedFrame[35:84, 458:507]
+            croppedFrame2 = resizedFrame[69:118, 501:551]
+            croppedFrame3 = resizedFrame[37:86, 546:595]
             combo = np.concatenate((croppedFrame1, croppedFrame2, croppedFrame3), axis=1)
             cv2.imshow('camera - press q to close',combo)
             if cv2.waitKey(1) & 0xFF == ord('q'):
