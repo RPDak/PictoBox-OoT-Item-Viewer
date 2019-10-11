@@ -6,3 +6,4 @@ pypiwin32==223
 pywin32==225
 tensorflow
 keras
+comtypes
